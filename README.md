@@ -37,12 +37,11 @@ ssh进入机器人
 ssh unitree@192.168.123.12
 ```
 
-进入`scripts/robot`文件夹，停止unitree官方的进程，运行自定义的lcm程序与docker
+进入`scripts`文件夹，执行控制脚本。该脚本会停止unitree官方的进程，运行自定义的lcm程序与docker。
 
 ```bash
-cd ~/a1_gym/dog_rl_deploy/script/robot
-./start_unitree_sdk.sh
-./start_controller.sh
+cd ~/a1_gym/dog_rl_deploy/script
+./run_rl.sh
 ```
 
-按下Ctrl+C自动停止程序并kill相关进程
+脚本会捕获退出信号，按下Ctrl+C自动停止程序并kill相关进程。
