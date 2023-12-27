@@ -3,10 +3,10 @@ import pickle as pkl
 import lcm
 import sys
 
-from a1_gym_deploy.utils.deployment_runner import DeploymentRunner
-from a1_gym_deploy.envs.lcm_agent import LCMAgent
-from a1_gym_deploy.utils.cheetah_state_estimator import StateEstimator
-from a1_gym_deploy.utils.command_profile import *
+from dog_rl_deploy.utils.deployment_runner import DeploymentRunner
+from dog_rl_deploy.envs.lcm_agent import LCMAgent
+from dog_rl_deploy.utils.cheetah_state_estimator import StateEstimator
+from dog_rl_deploy.utils.command_profile import *
 
 import pathlib
 
@@ -34,7 +34,7 @@ def load_and_run_policy(label, experiment_name, probe_policy_label=None, max_vel
     hardware_agent = LCMAgent(cfg, se, command_profile)
     se.spin()
 
-    from a1_gym_deploy.envs.history_wrapper import HistoryWrapper
+    from dog_rl_deploy.envs.history_wrapper import HistoryWrapper
     hardware_agent = HistoryWrapper(hardware_agent)
     print('Agent successfully created!')
 
@@ -86,7 +86,7 @@ def load_policy(logdir):
 
 
 if __name__ == '__main__':
-    label = "gait-conditioned-agility/2023-10-17/train"
+    label = "gait-conditioned-agility/2023-12-05/train"
 
     probe_policy_label = None
 

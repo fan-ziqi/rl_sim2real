@@ -1,2 +1,2 @@
 #!/bin/bash
-docker load -i deployment_image.tar
+sudo docker load -i deployment_image.tar

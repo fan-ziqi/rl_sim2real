@@ -5,7 +5,7 @@ import os
 import numpy as np
 import torch
 
-from a1_gym_deploy.utils.logger import MultiLogger
+from dog_rl_deploy.utils.logger import MultiLogger
 
 
 class DeploymentRunner:
@@ -108,7 +108,6 @@ class DeploymentRunner:
                     time.sleep(0.05)
 
                 print("Starting pose calibrated [Press R2 to start controller]")
-                print("debug6")
                 while True:
                     self.button_states = self.command_profile.get_buttons()
                     if self.command_profile.state_estimator.right_lower_right_switch_pressed:
@@ -135,22 +134,18 @@ class DeploymentRunner:
             if agent_name == self.control_agent_name:
                 control_obs = obs
 
-        print("debug6")
-        control_obs = self.calibrate(wait=False)
-        print("debug1")
+        print("not start")
+        control_obs = self.calibrate(wait=False, low=True)
+        print(control_obs)
 
         # now, run control loop
 
+        print(max_steps)
+
         try:
             for i in range(max_steps):
-                print("debug2")
-                print(i)
-                print("debug3")
-                print(control_obs.size())
-                print("debug4")
                 policy_info = {}
                 action = self.policy(control_obs, policy_info)
-                print("debug5")
 
                 for agent_name in self.agents.keys():
                     obs, ret, done, info = self.agents[agent_name].step(action)
