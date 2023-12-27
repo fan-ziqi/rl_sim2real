@@ -54,4 +54,4 @@ cd ~/a1_gym/dog_rl_deploy/scripts
 bash run_rl.sh
 ```
 
-按下Ctrl+C自动停止程序并kill相关进程
+脚本会捕获退出信号，按下Ctrl+C自动停止程序并kill相关进程。
