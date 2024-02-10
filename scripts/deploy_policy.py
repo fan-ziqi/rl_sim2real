@@ -14,14 +14,14 @@ lc = lcm.LCM("udpm://239.255.76.67:7667?ttl=255")
 
 def load_and_run_policy(label, experiment_name, probe_policy_label=None, max_vel=1.0, max_yaw_vel=1.0, max_vel_probe=1.0):
     # load agent
-    dirs = glob.glob(f"../../runs/{label}/*")
+    dirs = glob.glob(f"../../runs/{label}/*") # TODO
     logdir = sorted(dirs)[0]
     print(logdir)
 
     with open(logdir+"/parameters.pkl", 'rb') as file:
         pkl_cfg = pkl.load(file)
         print(pkl_cfg.keys())
-        cfg = pkl_cfg["Cfg"]
+        cfg = pkl_cfg["Cfg"] # TODO
         print(cfg.keys())
 
     print('Config successfully loaded!')
@@ -70,15 +70,19 @@ def load_and_run_policy(label, experiment_name, probe_policy_label=None, max_vel
 
     deployment_runner.run(max_steps=max_steps, logging=True)
 
+# TODO
 def load_policy(logdir):
-    body = torch.jit.load(logdir + '/checkpoints/body_latest.jit').to('cuda:0')
-    import os
-    adaptation_module = torch.jit.load(logdir + '/checkpoints/body_latest.jit').to('cuda:0')
+    actor = torch.jit.load(logdir + '/checkpoints/actor.pt').to('cuda:0')
+    encoder = torch.jit.load(logdir + '/checkpoints/actor.pt').to('cuda:0')
+    v_mu = torch.jit.load(logdir + '/checkpoints/v.pt').to('cuda:0')
+    z_mu = torch.jit.load(logdir + '/checkpoints/z.pt').to('cuda:0')
 
     def policy(obs, info):
         i = 0
-        latent = adaptation_module.forward(obs["obs_history"].to('cuda:0'))
-        action = body.forward(torch.cat((obs["obs_history"].to('cuda:0'), latent), dim=-1)).to('cpu')
+        latent = encoder.forward(obs["obs_history"].to('cuda:0'))
+        z = z_mu(latent.to('cuda:0'))
+        obs_v = v_mu(latent.to('cuda:0'))
+        action = actor.forward(torch.cat((z, obs_v, obs["obs"].to('cuda:0'), latent), dim=-1)).to('cpu')
         info['latent'] = latent.to('cpu')
         return action
 
@@ -86,7 +90,7 @@ def load_policy(logdir):
 
 
 if __name__ == '__main__':
-    label = "gait-conditioned-agility/2023-12-05/train"
+    label = "gait-conditioned-agility/2023-12-05/train" # TODO
 
     probe_policy_label = None
 

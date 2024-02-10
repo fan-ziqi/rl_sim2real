@@ -3,12 +3,18 @@
 
 参考仓库：https://github.com/Improbable-AI/walk-these-ways
 
+本仓库适用于 https://github.com/fan-ziqi/dreamwaq_reproduction
+
+TODO:
+- [ ] 文件夹结构适配legged_gym目录
+- [ ] policy与encoder网络适配
+
 # 拉取代码
 
-在walk-these-ways根目录下拉取代码
+在dreamwaq_reproduction根目录下拉取代码
 
 ```bash
-git clone https://github.com/fan-ziqi/dog_rl_deploy
+git clone -b a1_dreamwaq https://github.com/fan-ziqi/dog_rl_deploy
 ```
 
 # 使用方法

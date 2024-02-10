@@ -52,11 +52,7 @@ class LCMAgent():
 
         self.commands_scale = np.array(
             [self.obs_scales["lin_vel"], self.obs_scales["lin_vel"],
-             self.obs_scales["ang_vel"], self.obs_scales["body_height_cmd"], 1, 1, 1, 1, 1,
-             self.obs_scales["footswing_height_cmd"], self.obs_scales["body_pitch_cmd"],
-             # 0, self.obs_scales["body_pitch_cmd"],
-             self.obs_scales["body_roll_cmd"], self.obs_scales["stance_width_cmd"],
-             self.obs_scales["stance_length_cmd"], self.obs_scales["aux_reward_cmd"], 1, 1, 1, 1, 1, 1
+             self.obs_scales["ang_vel"], 1
              ])[:self.num_commands]
 
 
@@ -135,50 +131,14 @@ class LCMAgent():
         self.body_linear_vel = self.se.get_body_linear_vel()
         self.body_angular_vel = self.se.get_body_angular_vel()
 
-        ob = np.concatenate((self.gravity_vector.reshape(1, -1),
-                             self.commands * self.commands_scale,
+        ob = np.concatenate((self.body_angular_vel.reshape(1, -1) * self.obs_scales["ang_vel"],
+                             self.gravity_vector.reshape(1, -1),
+                             self.commands[:,:3] * self.commands_scale[:3],
                              (self.dof_pos - self.default_dof_pos).reshape(1, -1) * self.obs_scales["dof_pos"],
                              self.dof_vel.reshape(1, -1) * self.obs_scales["dof_vel"],
                              torch.clip(self.actions, -self.cfg["normalization"]["clip_actions"],
                                         self.cfg["normalization"]["clip_actions"]).cpu().detach().numpy().reshape(1, -1)
                              ), axis=1)
-
-        if self.cfg["env"]["observe_two_prev_actions"]:
-            ob = np.concatenate((ob,
-                            self.last_actions.cpu().detach().numpy().reshape(1, -1)), axis=1)
-
-        if self.cfg["env"]["observe_clock_inputs"]:
-            ob = np.concatenate((ob,
-                            self.clock_inputs), axis=1)
-            # print(self.clock_inputs)
-
-        if self.cfg["env"]["observe_vel"]:
-            ob = np.concatenate(
-                (self.body_linear_vel.reshape(1, -1) * self.obs_scales["lin_vel"],
-                 self.body_angular_vel.reshape(1, -1) * self.obs_scales["ang_vel"],
-                 ob), axis=1)
-
-        if self.cfg["env"]["observe_only_lin_vel"]:
-            ob = np.concatenate(
-                (self.body_linear_vel.reshape(1, -1) * self.obs_scales["lin_vel"],
-                 ob), axis=1)
-
-        if self.cfg["env"]["observe_yaw"]:
-            heading = self.se.get_yaw()
-            ob = np.concatenate((ob, heading.reshape(1, -1)), axis=-1)
-
-        self.contact_state = self.se.get_contact_state()
-        if "observe_contact_states" in self.cfg["env"].keys() and self.cfg["env"]["observe_contact_states"]:
-            ob = np.concatenate((ob, self.contact_state.reshape(1, -1)), axis=-1)
-
-        if "terrain" in self.cfg.keys() and self.cfg["terrain"]["measure_heights"]:
-            robot_height = 0.25
-            self.measured_heights = np.zeros(
-                (len(self.cfg["terrain"]["measured_points_x"]), len(self.cfg["terrain"]["measured_points_y"]))).reshape(
-                1, -1)
-            heights = np.clip(robot_height - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales["height_measurements"]
-            ob = np.concatenate((ob, heights), axis=1)
-
 
         return torch.tensor(ob, device=self.device).float()
 
@@ -190,7 +150,7 @@ class LCMAgent():
         command_for_robot = pd_tau_targets_lcmt()
         self.joint_pos_target = \
             (action[0, :12].detach().cpu().numpy() * self.cfg["control"]["action_scale"]).flatten()
-        self.joint_pos_target[[0, 3, 6, 9]] *= self.cfg["control"]["hip_scale_reduction"]
+        # self.joint_pos_target[[0, 3, 6, 9]] *= self.cfg["control"]["hip_scale_reduction"]
         # self.joint_pos_target[[0, 3, 6, 9]] *= -1
         self.joint_pos_target = self.joint_pos_target
         self.joint_pos_target += self.default_dof_pos
@@ -233,35 +193,6 @@ class LCMAgent():
         if self.timestep % 100 == 0: print(f'frq: {1 / (time.time() - self.time)} Hz');
         self.time = time.time()
         obs = self.get_obs()
-
-        # clock accounting
-        frequencies = self.commands[:, 4]
-        phases = self.commands[:, 5]
-        offsets = self.commands[:, 6]
-        if self.num_commands == 8:
-            bounds = 0
-            durations = self.commands[:, 7]
-        else:
-            bounds = self.commands[:, 7]
-            durations = self.commands[:, 8]
-        self.gait_indices = torch.remainder(self.gait_indices + self.dt * frequencies, 1.0)
-
-        if "pacing_offset" in self.cfg["commands"] and self.cfg["commands"]["pacing_offset"]:
-            self.foot_indices = [self.gait_indices + phases + offsets + bounds,
-                                 self.gait_indices + bounds,
-                                 self.gait_indices + offsets,
-                                 self.gait_indices + phases]
-        else:
-            self.foot_indices = [self.gait_indices + phases + offsets + bounds,
-                                 self.gait_indices + offsets,
-                                 self.gait_indices + bounds,
-                                 self.gait_indices + phases]
-        self.clock_inputs[:, 0] = torch.sin(2 * np.pi * self.foot_indices[0])
-        self.clock_inputs[:, 1] = torch.sin(2 * np.pi * self.foot_indices[1])
-        self.clock_inputs[:, 2] = torch.sin(2 * np.pi * self.foot_indices[2])
-        self.clock_inputs[:, 3] = torch.sin(2 * np.pi * self.foot_indices[3])
-
-        #print(self.commands)
 
         infos = {"joint_pos": self.dof_pos[np.newaxis, :],
                  "joint_vel": self.dof_vel[np.newaxis, :],

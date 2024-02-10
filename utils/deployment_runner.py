@@ -134,13 +134,9 @@ class DeploymentRunner:
             if agent_name == self.control_agent_name:
                 control_obs = obs
 
-        print("not start")
         control_obs = self.calibrate(wait=False, low=True)
-        print(control_obs)
 
         # now, run control loop
-
-        print(max_steps)
 
         try:
             for i in range(max_steps):
