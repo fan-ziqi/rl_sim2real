@@ -8,7 +8,7 @@
 在walk-these-ways根目录下拉取代码
 
 ```bash
-git clone https://github.com/fan-ziqi/dog_rl_deploy
+git clone -b a1_wtw https://github.com/fan-ziqi/dog_rl_deploy
 ```
 
 # 使用方法
