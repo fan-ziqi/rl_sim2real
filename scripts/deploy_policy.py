@@ -12,9 +12,9 @@ import pathlib
 
 lc = lcm.LCM("udpm://239.255.76.67:7667?ttl=255")
 
-def load_and_run_policy(label, experiment_name, probe_policy_label=None, max_vel=1.0, max_yaw_vel=1.0, max_vel_probe=1.0):
+def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0, max_vel_probe=1.0):
     # load agent
-    dirs = glob.glob(f"../../runs/{label}/*") # TODO
+    dirs = glob.glob(f"../../legged_gym/logs/{label}/*") # TODO
     logdir = sorted(dirs)[0]
     print(logdir)
 
@@ -42,24 +42,13 @@ def load_and_run_policy(label, experiment_name, probe_policy_label=None, max_vel
     print('Policy successfully loaded!')
     print(se.get_gravity_vector())
 
-    if probe_policy_label is not None:
-        # load agent
-        dirs = glob.glob(f"../runs/{probe_policy_label}_*")
-        probe_policy_logdir = sorted(dirs)[0]
-        with open(probe_policy_logdir + "/parameters.pkl", 'rb') as file:
-            probe_cfg = pkl.load(file)
-            probe_cfg = probe_cfg["Cfg"]
-        probe_policy = load_policy(probe_policy_logdir)
-
     # load runner
-    root = f"{pathlib.Path(__file__).parent.resolve()}/../../logs/"
+    root = f"{pathlib.Path(__file__).parent.resolve()}/../logs/"
     pathlib.Path(root).mkdir(parents=True, exist_ok=True)
     deployment_runner = DeploymentRunner(experiment_name=experiment_name, se=None,
                                          log_root=f"{root}/{experiment_name}")
     deployment_runner.add_control_agent(hardware_agent, "hardware_closed_loop")
     deployment_runner.add_policy(policy)
-    if probe_policy_label is not None:
-        deployment_runner.add_probe_policy(probe_policy, probe_cfg)
     deployment_runner.add_command_profile(command_profile)
 
     if len(sys.argv) >= 2:
@@ -70,30 +59,34 @@ def load_and_run_policy(label, experiment_name, probe_policy_label=None, max_vel
 
     deployment_runner.run(max_steps=max_steps, logging=True)
 
-# TODO
+def reparameterize(mu, logvar):
+    std = torch.exp(0.5 * logvar)
+    eps = torch.randn_like(std)
+    return eps * std + mu
+
 def load_policy(logdir):
-    actor = torch.jit.load(logdir + '/checkpoints/actor.pt').to('cuda:0')
-    encoder = torch.jit.load(logdir + '/checkpoints/actor.pt').to('cuda:0')
-    v_mu = torch.jit.load(logdir + '/checkpoints/v.pt').to('cuda:0')
-    z_mu = torch.jit.load(logdir + '/checkpoints/z.pt').to('cuda:0')
+    actor = torch.jit.load(logdir + '/actor.pt').to('cuda:0')
+    encoder = torch.jit.load(logdir + '/encoder.pt').to('cuda:0')
+    z_mu = torch.jit.load(logdir + '/z_mu.pt').to('cuda:0')
+    z_var = torch.jit.load(logdir + '/z_var.pt').to('cuda:0')
+    v_mu = torch.jit.load(logdir + '/v_mu.pt').to('cuda:0')
+    v_var = torch.jit.load(logdir + '/v_var.pt').to('cuda:0')
 
     def policy(obs, info):
-        i = 0
-        latent = encoder.forward(obs["obs_history"].to('cuda:0'))
-        z = z_mu(latent.to('cuda:0'))
-        obs_v = v_mu(latent.to('cuda:0'))
-        action = actor.forward(torch.cat((z, obs_v, obs["obs"].to('cuda:0'), latent), dim=-1)).to('cpu')
-        info['latent'] = latent.to('cpu')
+        latent = encoder(obs["obs_history"].to('cuda:0'))
+        z = reparameterize(z_mu(latent.to('cuda:0')), z_var(latent.to('cuda:0')))
+        v = reparameterize(v_mu(latent.to('cuda:0')), v_var(latent.to('cuda:0')))
+        action = actor(torch.cat((z, v, obs["obs"].to('cuda:0')), dim=-1)).to('cpu')
+        info['z'] = z.to('cpu')
+        info['v'] = v.to('cpu')
         return action
 
     return policy
 
 
 if __name__ == '__main__':
-    label = "gait-conditioned-agility/2023-12-05/train" # TODO
+    label = "a1_dreamwaq/exported"
 
-    probe_policy_label = None
+    experiment_name = "a1_dreamwaq"
 
-    experiment_name = "example_experiment"
-
-    load_and_run_policy(label, experiment_name=experiment_name, probe_policy_label=probe_policy_label, max_vel=3.0, max_yaw_vel=5.0, max_vel_probe=1.0)
+    load_and_run_policy(label, experiment_name=experiment_name, max_vel=3.0, max_yaw_vel=5.0, max_vel_probe=1.0)
