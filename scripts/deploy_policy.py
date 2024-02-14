@@ -67,18 +67,13 @@ def reparameterize(mu, logvar):
 def load_policy(logdir):
     actor = torch.jit.load(logdir + '/actor.pt').to('cuda:0')
     encoder = torch.jit.load(logdir + '/encoder.pt').to('cuda:0')
-    z_mu = torch.jit.load(logdir + '/z_mu.pt').to('cuda:0')
-    z_var = torch.jit.load(logdir + '/z_var.pt').to('cuda:0')
-    v_mu = torch.jit.load(logdir + '/v_mu.pt').to('cuda:0')
-    v_var = torch.jit.load(logdir + '/v_var.pt').to('cuda:0')
+    vq_layer = torch.jit.load(logdir + '/vq_layer.pt').to('cuda:0')
 
     def policy(obs, info):
-        latent = encoder(obs["obs_history"].to('cuda:0'))
-        z = reparameterize(z_mu(latent.to('cuda:0')), z_var(latent.to('cuda:0')))
-        v = reparameterize(v_mu(latent.to('cuda:0')), v_var(latent.to('cuda:0')))
-        action = actor(torch.cat((z, v, obs["obs"].to('cuda:0')), dim=-1)).to('cpu')
+        encoding = encoder(obs["obs_history"].to('cuda:0'))
+        z, _ = vq_layer(encoding)
+        action = actor(torch.cat((z, obs["obs"].to('cuda:0')), dim=-1)).to('cpu')
         info['z'] = z.to('cpu')
-        info['v'] = v.to('cpu')
         return action
 
     return policy
