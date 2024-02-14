@@ -71,7 +71,7 @@ def load_policy(logdir):
 
     def policy(obs, info):
         encoding = encoder(obs["obs_history"].to('cuda:0'))
-        z, _ = vq_layer(encoding)
+        z = vq_layer(encoding)
         action = actor(torch.cat((z, obs["obs"].to('cuda:0')), dim=-1)).to('cpu')
         info['z'] = z.to('cpu')
         return action
