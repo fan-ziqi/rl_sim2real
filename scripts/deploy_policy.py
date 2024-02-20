@@ -80,8 +80,8 @@ def load_policy(logdir):
 
 
 if __name__ == '__main__':
-    label = "a1_vqvae/exported"
+    label = "a1_blinddog/exported"
 
-    experiment_name = "a1_vqvae"
+    experiment_name = "a1_blinddog"
 
     load_and_run_policy(label, experiment_name=experiment_name, max_vel=3.0, max_yaw_vel=5.0, max_vel_probe=1.0)
