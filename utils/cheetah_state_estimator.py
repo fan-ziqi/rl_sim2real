@@ -5,11 +5,11 @@ import time
 
 import numpy as np
 
-from dog_rl_deploy.lcm_types.leg_control_data_lcmt import leg_control_data_lcmt
-from dog_rl_deploy.lcm_types.rc_command_lcmt import rc_command_lcmt
-from dog_rl_deploy.lcm_types.state_estimator_lcmt import state_estimator_lcmt
-from dog_rl_deploy.lcm_types.camera_message_lcmt import camera_message_lcmt
-from dog_rl_deploy.lcm_types.camera_message_rect_wide import camera_message_rect_wide
+from rl_sim2real.lcm_types.leg_control_data_lcmt import leg_control_data_lcmt
+from rl_sim2real.lcm_types.rc_command_lcmt import rc_command_lcmt
+from rl_sim2real.lcm_types.state_estimator_lcmt import state_estimator_lcmt
+from rl_sim2real.lcm_types.camera_message_lcmt import camera_message_lcmt
+from rl_sim2real.lcm_types.camera_message_rect_wide import camera_message_rect_wide
 
 
 def get_rpy_from_quaternion(q):
@@ -161,7 +161,7 @@ class StateEstimator:
 
         # always in use
         cmd_x = 1 * self.left_stick[1]
-        cmd_y = -1 * self.left_stick[0]
+        cmd_y = 1 * self.left_stick[0]
         cmd_yaw = -1 * self.right_stick[0]
 
         # default values

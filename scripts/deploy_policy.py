@@ -3,10 +3,10 @@ import pickle as pkl
 import lcm
 import sys
 
-from dog_rl_deploy.utils.deployment_runner import DeploymentRunner
-from dog_rl_deploy.envs.lcm_agent import LCMAgent
-from dog_rl_deploy.utils.cheetah_state_estimator import StateEstimator
-from dog_rl_deploy.utils.command_profile import *
+from rl_sim2real.utils.deployment_runner import DeploymentRunner
+from rl_sim2real.envs.lcm_agent import LCMAgent
+from rl_sim2real.utils.cheetah_state_estimator import StateEstimator
+from rl_sim2real.utils.command_profile import *
 
 import pathlib
 
@@ -34,7 +34,7 @@ def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0, ma
     hardware_agent = LCMAgent(cfg, se, command_profile)
     se.spin()
 
-    from dog_rl_deploy.envs.history_wrapper import HistoryWrapper
+    from rl_sim2real.envs.history_wrapper import HistoryWrapper
     hardware_agent = HistoryWrapper(hardware_agent)
     print('Agent successfully created!')
 
@@ -72,7 +72,7 @@ def load_policy(logdir):
     def policy(obs, info):
         encoding = encoder(obs["obs_history"].to('cuda:0'))
         z = vq_layer(encoding)
-        action = actor(torch.cat((z, obs["obs"].to('cuda:0')), dim=-1)).to('cpu')
+        action = actor(torch.cat((obs["obs"].to('cuda:0'), z), dim=-1)).to('cpu')
         info['z'] = z.to('cpu')
         return action
 

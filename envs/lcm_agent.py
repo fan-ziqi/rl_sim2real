@@ -4,7 +4,7 @@ import lcm
 import numpy as np
 import torch
 
-from dog_rl_deploy.lcm_types.pd_tau_targets_lcmt import pd_tau_targets_lcmt
+from rl_sim2real.lcm_types.pd_tau_targets_lcmt import pd_tau_targets_lcmt
 
 lc = lcm.LCM("udpm://239.255.76.67:7667?ttl=255")
 

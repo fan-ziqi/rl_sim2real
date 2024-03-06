@@ -2,7 +2,7 @@ from setuptools import find_packages
 from distutils.core import setup
 
 setup(
-    name='dog_rl_deploy',
+    name='rl_sim2real',
     version='1.0.0',
     author='Gabriel Margolis',
     license="BSD-3-Clause",

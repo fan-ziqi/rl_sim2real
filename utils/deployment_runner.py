@@ -5,7 +5,7 @@ import os
 import numpy as np
 import torch
 
-from dog_rl_deploy.utils.logger import MultiLogger
+from rl_sim2real.utils.logger import MultiLogger
 
 
 class DeploymentRunner:
