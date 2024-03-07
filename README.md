@@ -1,61 +1,62 @@
 # rl_sim2real
 
-## 连接宇树机器狗
+[中文文档](README_CN.md)
 
-连接机器狗自带wifi`UnitreeRoboticsA1-xxx`，测试连通性
+## Connect to the Unitree Robot Dog
+
+Connect to the robot dog's built-in wifi `UnitreeRoboticsA1-xxx`, test the connectivity
 
 ```bash
 ping 192.168.123.12
 ```
 
-若没问题进行下一步
+If there is no problem, proceed to the next step
 
-## 部署docker环境
+## Deploy Docker Environment
 
-进入本项目根目录下的`scripts`文件夹，执行部署脚本。该脚本会下载docker镜像并发送至机器人。（密码为123）
+Go to the `scripts` folder under the root directory of this project and execute the deployment script. This script will download the Docker image and send it to the robot. (Password is 123)
 
 ```bash
-cd sim2real/scripts
+cd rl_sim2real/scripts
 bash deploy_env.sh
 ```
 
-ssh进入机器人
+SSH into the robot
 
 ```
 ssh unitree@192.168.123.12
 ```
 
-安装docker环境
+Install Docker environment
 
 ```bash
-cd ~/a1_gym/sim2real/docker
+cd ~/a1_gym/rl_sim2real/docker
 bash unzip_image.sh
 ```
 
-以上步骤仅需执行一次
+The above steps only need to be executed once
 
-## 运行控制器
+## Run the Controller
 
-ssh进入机器人
+SSH into the robot
 
 ```bash
 ssh unitree@192.168.123.12
 ```
 
-进入本项目根目录下的`scripts`文件夹，运行`run_rl.sh`脚本。该脚本会停止unitree官方的进程，运行自定义的lcm程序与docker
+Go to the `scripts` folder under the root directory of this project and run the `run_rl.sh` script. This script will stop the official Unitree process and run a custom lcm program with Docker
 
 ```bash
-cd ~/a1_gym/sim2real/scripts
+cd ~/a1_gym/rl_sim2real/scripts
 bash run_rl.sh
 ```
 
-随后多次（大概三四次）按下LR键，狗会开始运动。
+Then press the LR key several times (about three or four times), and the dog will start moving.
 
-**左摇杆控制xy，右摇杆控制yaw**
+**The left joystick controls xy, and the right joystick controls yaw**
 
-再次按下LR键，狗会停止运动
+Press the LR key again, and the dog will stop moving
 
-此脚本会捕获退出信号，按下Ctrl+C自动停止程序并kill相关进程。
+This script will capture the exit signal, press Ctrl+C to automatically stop the program and kill related processes.
 
-
-> 部分代码参考https://github.com/Improbable-AI/walk-these-ways
+> Some code references https://github.com/Improbable-AI/walk-these-ways
