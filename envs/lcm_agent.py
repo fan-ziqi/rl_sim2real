@@ -148,9 +148,8 @@ class LCMAgent():
     def publish_action(self, action, hard_reset=False):
 
         command_for_robot = pd_tau_targets_lcmt()
-        self.joint_pos_target = \
-            (action[0, :12].detach().cpu().numpy() * self.cfg["control"]["action_scale"]).flatten()
-        # self.joint_pos_target[[0, 3, 6, 9]] *= self.cfg["control"]["hip_scale_reduction"]
+        self.joint_pos_target = (action[0, :12].detach().cpu().numpy() * self.cfg["control"]["action_scale"]).flatten()
+        self.joint_pos_target[[0, 3, 6, 9]] *= self.cfg["control"]["hip_scale_reduction"]
         # self.joint_pos_target[[0, 3, 6, 9]] *= -1
         self.joint_pos_target = self.joint_pos_target
         self.joint_pos_target += self.default_dof_pos
