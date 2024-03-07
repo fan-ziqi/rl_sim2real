@@ -1,5 +1,5 @@
 import glob
-import pickle as pkl
+import pickle
 import lcm
 import sys
 
@@ -14,15 +14,12 @@ lc = lcm.LCM("udpm://239.255.76.67:7667?ttl=255")
 
 def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0, max_vel_probe=1.0):
     # load agent
-    dirs = glob.glob(f"../../legged_gym/logs/{label}/*") # TODO
-    logdir = sorted(dirs)[0]
+    logdir = glob.glob(f"../../legged_gym/logs/{label}/")
     print(logdir)
 
-    with open(logdir+"/parameters.pkl", 'rb') as file:
-        pkl_cfg = pkl.load(file)
-        print(pkl_cfg.keys())
-        cfg = pkl_cfg["Cfg"] # TODO
-        print(cfg.keys())
+    with open(logdir + "cfg.pkl", 'rb') as file:
+        pkl_cfg = pickle.load(file)
+        cfg = pkl_cfg["env_cfg"]
 
     print('Config successfully loaded!')
 
@@ -59,15 +56,10 @@ def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0, ma
 
     deployment_runner.run(max_steps=max_steps, logging=True)
 
-def reparameterize(mu, logvar):
-    std = torch.exp(0.5 * logvar)
-    eps = torch.randn_like(std)
-    return eps * std + mu
-
 def load_policy(logdir):
-    actor = torch.jit.load(logdir + '/actor.pt').to('cuda:0')
-    encoder = torch.jit.load(logdir + '/encoder.pt').to('cuda:0')
-    vq_layer = torch.jit.load(logdir + '/vq_layer.pt').to('cuda:0')
+    actor = torch.jit.load(logdir + 'actor.pt').to('cuda:0')
+    encoder = torch.jit.load(logdir + 'encoder.pt').to('cuda:0')
+    vq_layer = torch.jit.load(logdir + 'vq_layer.pt').to('cuda:0')
 
     def policy(obs, info):
         encoding = encoder(obs["obs_history"].to('cuda:0'))
