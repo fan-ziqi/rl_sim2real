@@ -9,17 +9,18 @@ from rl_sim2real.utils.cheetah_state_estimator import StateEstimator
 from rl_sim2real.utils.command_profile import *
 
 import pathlib
+import os
 
 lc = lcm.LCM("udpm://239.255.76.67:7667?ttl=255")
 
-def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0, max_vel_probe=1.0):
+def load_and_run_policy(experiment_name, max_vel=1.0, max_yaw_vel=1.0, max_vel_probe=1.0):
     # load agent
-    logdir = glob.glob(f"../../legged_gym/logs/{label}/")
-    print(logdir)
+    # logdir = glob.glob(f"../../exported/")
+    logdir = "../../exported/"
 
-    with open(logdir + "cfg.pkl", 'rb') as file:
-        pkl_cfg = pickle.load(file)
-        cfg = pkl_cfg["env_cfg"]
+    with open(os.path.join(logdir) + "cfg.pkl", 'rb') as file:
+        cfg = pickle.load(file)
+        print(cfg.keys())
 
     print('Config successfully loaded!')
 
@@ -60,6 +61,7 @@ def load_policy(logdir):
     actor = torch.jit.load(logdir + 'actor.pt').to('cuda:0')
     encoder = torch.jit.load(logdir + 'encoder.pt').to('cuda:0')
     vq_layer = torch.jit.load(logdir + 'vq_layer.pt').to('cuda:0')
+    print("load policy success")
 
     def policy(obs, info):
         encoding = encoder(obs["obs_history"].to('cuda:0'))
@@ -72,8 +74,6 @@ def load_policy(logdir):
 
 
 if __name__ == '__main__':
-    label = "a1_blinddog/exported"
-
     experiment_name = "a1_blinddog"
 
-    load_and_run_policy(label, experiment_name=experiment_name, max_vel=3.0, max_yaw_vel=5.0, max_vel_probe=1.0)
+    load_and_run_policy(experiment_name=experiment_name, max_vel=3.0, max_yaw_vel=5.0, max_vel_probe=1.0)
