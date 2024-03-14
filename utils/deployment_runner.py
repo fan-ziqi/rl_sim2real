@@ -122,7 +122,7 @@ class DeploymentRunner:
         return control_obs
 
 
-    def run(self, num_log_steps=1000000000, max_steps=100000000, logging=True):
+    def run(self, history_obs_buf, num_log_steps=1000000000, max_steps=100000000, logging=True):
         assert self.control_agent_name is not None, "cannot deploy, runner has no control agent!"
         assert self.policy is not None, "cannot deploy, runner has no policy!"
         assert self.command_profile is not None, "cannot deploy, runner has no command profile!"
@@ -144,7 +144,7 @@ class DeploymentRunner:
                 action = self.policy(control_obs, policy_info)
 
                 for agent_name in self.agents.keys():
-                    obs, ret, done, info = self.agents[agent_name].step(action)
+                    history_obs, obs, ret, done, info = self.agents[agent_name].step(history_obs_buf, action)
 
                     info.update(policy_info)
                     info.update({"observation": obs, "reward": ret, "done": done, "timestep": i,

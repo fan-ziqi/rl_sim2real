@@ -34,6 +34,9 @@ def load_and_run_policy(experiment_name, max_vel=1.0, max_yaw_vel=1.0, max_vel_p
 
     from rl_sim2real.envs.history_wrapper import HistoryWrapper
     hardware_agent = HistoryWrapper(hardware_agent)
+    from rl_sim2real.envs import observation_buffer
+    history_obs_buf = observation_buffer.ObservationBuffer(1, cfg["env"]["num_observations"] - 3, cfg["env"]["include_history_steps"], 'cuda:0')
+
     print('Agent successfully created!')
 
     policy = load_policy(logdir)
@@ -55,13 +58,12 @@ def load_and_run_policy(experiment_name, max_vel=1.0, max_yaw_vel=1.0, max_vel_p
         max_steps = 10000000
     print(f'max steps {max_steps}')
 
-    deployment_runner.run(max_steps=max_steps, logging=True)
+    deployment_runner.run(history_obs_buf, max_steps=max_steps, logging=True)
 
 def load_policy(logdir):
     actor = torch.jit.load(logdir + 'actor.pt').to('cuda:0')
     encoder = torch.jit.load(logdir + 'encoder.pt').to('cuda:0')
     vq_layer = torch.jit.load(logdir + 'vq_layer.pt').to('cuda:0')
-    print("load policy success")
 
     def policy(obs, info):
         encoding = encoder(obs["obs_history"].to('cuda:0'))

@@ -183,7 +183,7 @@ class LCMAgent():
     def reset_gait_indices(self):
         self.gait_indices = torch.zeros(self.num_envs, dtype=torch.float)
 
-    def step(self, actions, hard_reset=False):
+    def step(self, history_obs_buf, actions, hard_reset=False):
         clip_actions = self.cfg["normalization"]["clip_actions"]
         self.last_actions = self.actions[:]
         self.actions = torch.clip(actions[0:1, :], -clip_actions, clip_actions)
@@ -192,6 +192,9 @@ class LCMAgent():
         if self.timestep % 100 == 0: print(f'frq: {1 / (time.time() - self.time)} Hz');
         self.time = time.time()
         obs = self.get_obs()
+
+        history_obs_buf.insert(obs)
+        history_obs = history_obs_buf.get_obs_vec(np.arange(self.cfg["env"]["include_history_steps"]))
 
         infos = {"joint_pos": self.dof_pos[np.newaxis, :],
                  "joint_vel": self.dof_vel[np.newaxis, :],
@@ -207,4 +210,4 @@ class LCMAgent():
                  }
 
         self.timestep += 1
-        return obs, None, None, infos
+        return history_obs, obs, None, None, infos
