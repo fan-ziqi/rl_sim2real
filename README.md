@@ -1,3 +1,5 @@
+# 此项目已停止维护，请不要再fork本仓库。如需sim2real功能请关注https://github.com/fan-ziqi/rl_sar
+
 # dog_rl_deploy
 四足机器人强化学习实物部署（Sim to Real）
 
